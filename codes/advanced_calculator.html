@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Calculator</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --calc-bg: #333;
+            --display-bg: #eee;
+            --btn-bg: #4a4a4a;
+            --btn-hover: #5a5a5a;
+            --btn-text: white;
+            --operator-bg: #ff9500;
+            --operator-hover: #ffaa33;
+            --clear-bg: #a5a5a5;
+            --clear-hover: #b5b5b5;
+            --text-color: #333;
+            --display-text: #333;
+            --history-bg: #e0e0e0;
+        }
+
+        .dark-theme {
+            --bg-color: #121212;
+            --calc-bg: #1e1e1e;
+            --display-bg: #2d2d2d;
+            --btn-bg: #3a3a3a;
+            --btn-hover: #4a4a4a;
+            --btn-text: #f0f0f0;
+            --operator-bg: #e67e00;
+            --operator-hover: #ff9500;
+            --clear-bg: #6a6a6a;
+            --clear-hover: #7a7a7a;
+            --text-color: #f0f0f0;
+            --display-text: #f0f0f0;
+            --history-bg: #2a2a2a;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            margin: 0;
+            transition: background-color 0.3s;
+            color: var(--text-color);
+        }
+        
+        .calculator-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            width: 95%;
+        }
+        
+        .theme-toggle {
+            align-self: flex-end;
+            margin-bottom: 10px;
+        }
+        
+        .theme-toggle button {
+            background-color: var(--btn-bg);
+            color: var(--btn-text);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .theme-toggle button:hover {
+            background-color: var(--btn-hover);
+        }
+        
+        .calculator-wrapper {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .calculator {
+            background-color: var(--calc-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            padding: 25px;
+            flex: 1;
+            min-width: 320px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        
+        .display-container {
+            margin-bottom: 20px;
+        }
+        
+        .display {
+            background-color: var(--display-bg);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: right;
+            font-size: 28px;
+            height: 50px;
+            overflow: hidden;
+            margin-bottom: 5px;
+            color: var(--display-text);
+            transition: background-color 0.3s, color 0.3s;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .sub-display {
+            height: 20px;
+            font-size: 14px;
+            color: #888;
+            text-align: right;
+            padding: 0 5px;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        
+        button {
+            background-color: var(--btn-bg);
+            color: var(--btn-text);
+            border: none;
+            border-radius: 10px;
+            padding: 18px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+        }
+        
+        button:hover {
+            background-color: var(--btn-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 8px rgba(0,0,0,0.3);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+        }
+        
+        .operator {
+            background-color: var(--operator-bg);
+        }
+        
+        .operator:hover {
+            background-color: var(--operator-hover);
+        }
+        
+        .equals {
+            background-color: var(--operator-bg);
+        }
+        
+        .clear, .backspace {
+            background-color: var(--clear-bg);
+            color: black;
+        }
+        
+        .clear:hover, .backspace:hover {
+            background-color: var(--clear-hover);
+        }
+        
+        .history-panel {
+            background-color: var(--history-bg);
+            border-radius: 15px;
+            padding: 20px;
+            flex: 0 0 250px;
+            max-height: 500px;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+        }
+        
+        .history-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .history-item:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+        
+        .history-expression {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .history-result {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: right;
+        }
+        
+        .clear-history {
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .clear-history button {
+            background-color: var(--clear-bg);
+            color: black;
+            font-size: 14px;
+            padding: 8px 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .calculator-wrapper {
+                flex-direction: column;
+            }
+            
+            .history-panel {
+                flex: 1;
+                max-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="theme-toggle">
+            <button id="theme-toggle-btn">Switch to Dark Mode</button>
+        </div>
+        
+        <div class="calculator-wrapper">
+            <div class="calculator">
+                <div class="display-container">
+                    <div class="sub-display" id="sub-display"></div>
+                    <div class="display" id="display">0</div>
+                </div>
+                <div class="buttons">
+                    <button class="clear" onclick="clearDisplay()">C</button>
+                    <button class="backspace" onclick="backspace()">⌫</button>
+                    <button onclick="appendToDisplay('%')">%</button>
+                    <button class="operator" onclick="appendToDisplay('/')">/</button>
+                    
+                    <button onclick="appendToDisplay('7')">7</button>
+                    <button onclick="appendToDisplay('8')">8</button>
+                    <button onclick="appendToDisplay('9')">9</button>
+                    <button class="operator" onclick="appendToDisplay('*')">×</button>
+                    
+                    <button onclick="appendToDisplay('4')">4</button>
+                    <button onclick="appendToDisplay('5')">5</button>
+                    <button onclick="appendToDisplay('6')">6</button>
+                    <button class="operator" onclick="appendToDisplay('-')">-</button>
+                    
+                    <button onclick="appendToDisplay('1')">1</button>
+                    <button onclick="appendToDisplay('2')">2</button>
+                    <button onclick="appendToDisplay('3')">3</button>
+                    <button class="operator" onclick="appendToDisplay('+')">+</button>
+                    
+                    <button onclick="appendToDisplay('0')">0</button>
+                    <button onclick="appendToDisplay('.')">.</button>
+                    <button onclick="appendToDisplay('(')">(</button>
+                    <button onclick="appendToDisplay(')')">)</button>
+                    
+                    <button class="equals" onclick="calculate()" style="grid-column: span 4;">=</button>
+                </div>
+            </div>
+            
+            <div class="history-panel">
+                <div class="history-title">Calculation History</div>
+                <div id="history-list"></div>
+                <div class="clear-history">
+                    <button onclick="clearHistory()">Clear History</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let displayValue = '0';
+        let subDisplayValue = '';
+        let calculationHistory = [];
+        const display = document.getElementById('display');
+        const subDisplay = document.getElementById('sub-display');
+        const historyList = document.getElementById('history-list');
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
+        let isDarkMode = false;
+        
+        // Load history from localStorage if available
+        function loadHistory() {
+            const savedHistory = localStorage.getItem('calculatorHistory');
+            if (savedHistory) {
+                calculationHistory = JSON.parse(savedHistory);
+                updateHistoryDisplay();
+            }
+            
+            // Load theme preference
+            const savedTheme = localStorage.getItem('calculatorTheme');
+            if (savedTheme === 'dark') {
+                toggleTheme();
+            }
+        }
+        
+        // Save history to localStorage
+        function saveHistory() {
+            localStorage.setItem('calculatorHistory', JSON.stringify(calculationHistory));
+        }
+        
+        function updateDisplay() {
+            display.textContent = displayValue;
+            subDisplay.textContent = subDisplayValue;
+        }
+        
+        function appendToDisplay(value) {
+            if (displayValue === '0' && value !== '.') {
+                displayValue = value;
+            } else {
+                displayValue += value;
+            }
+            updateDisplay();
+        }
+        
+        function clearDisplay() {
+            displayValue = '0';
+            subDisplayValue = '';
+            updateDisplay();
+        }
+        
+        function backspace() {
+            if (displayValue.length > 1) {
+                displayValue = displayValue.slice(0, -1);
+            } else {
+                displayValue = '0';
+            }
+            updateDisplay();
+        }
+        
+        function calculate() {
+            try {
+                // Save the expression for history
+                const expression = displayValue;
+                
+                // Replace × with * and % with /100 for evaluation
+                let processedExpression = displayValue.replace(/×/g, '*').replace(/%/g, '/100');
+                
+                // Evaluate the expression
+                const result = eval(processedExpression);
+                
+                // Check for errors
+                if (!isFinite(result)) {
+                    throw new Error('Division by zero or overflow');
+                }
+                
+                // Format the result
+                const formattedResult = formatResult(result);
+                
+                // Update displays
+                subDisplayValue = expression + ' =';
+                displayValue = formattedResult;
+                
+                // Add to history
+                addToHistory(expression, formattedResult);
+                
+            } catch (error) {
+                subDisplayValue = 'Error';
+                displayValue = error.message;
+            }
+            
+            updateDisplay();
+        }
+        
+        function formatResult(result) {
+            // Format number to avoid excessive decimal places
+            if (Number.isInteger(result)) {
+                return result.toString();
+            } else {
+                // Limit to 8 decimal places and remove trailing zeros
+                return parseFloat(result.toFixed(8)).toString();
+            }
+        }
+        
+        function addToHistory(expression, result) {
+            // Add to the beginning of the array (newest first)
+            calculationHistory.unshift({
+                expression: expression,
+                result: result
+            });
+            
+            // Limit history to 10 items
+            if (calculationHistory.length > 10) {
+                calculationHistory.pop();
+            }
+            
+            updateHistoryDisplay();
+            saveHistory();
+        }
+        
+        function updateHistoryDisplay() {
+            historyList.innerHTML = '';
+            
+            calculationHistory.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.onclick = function() {
+                    displayValue = item.expression;
+                    updateDisplay();
+                };
+                
+                const expressionDiv = document.createElement('div');
+                expressionDiv.className = 'history-expression';
+                expressionDiv.textContent = item.expression;
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'history-result';
+                resultDiv.textContent = '= ' + item.result;
+                
+                historyItem.appendChild(expressionDiv);
+                historyItem.appendChild(resultDiv);
+                historyList.appendChild(historyItem);
+            });
+        }
+        
+        function clearHistory() {
+            calculationHistory = [];
+            updateHistoryDisplay();
+            saveHistory();
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            isDarkMode = !isDarkMode;
+            
+            if (isDarkMode) {
+                themeToggleBtn.textContent = 'Switch to Light Mode';
+                localStorage.setItem('calculatorTheme', 'dark');
+            } else {
+                themeToggleBtn.textContent = 'Switch to Dark Mode';
+                localStorage.setItem('calculatorTheme', 'light');
+            }
+        }
+        
+        // Add keyboard support
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if (/[0-9]/.test(key)) {
+                appendToDisplay(key);
+            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+                appendToDisplay(key);
+            } else if (key === '.') {
+                appendToDisplay('.');
+            } else if (key === 'Enter' || key === '=') {
+                calculate();
+            } else if (key === 'Backspace') {
+                backspace();
+            } else if (key === 'Escape' || key === 'c' || key === 'C') {
+                clearDisplay();
+            } else if (key === '(' || key === ')') {
+                appendToDisplay(key);
+            } else if (key === '%') {
+                appendToDisplay('%');
+            }
+        });
+        
+        // Theme toggle button event
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        
+        // Load history on page load
+        window.addEventListener('load', loadHistory);
+    </script>
+</body>
+</html>
